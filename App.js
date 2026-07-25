@@ -3,8 +3,11 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { AppProvider } from './src/context/AppContext';
 import HomeScreen from './src/screens/HomeScreen';
 import CatalogScreen from './src/screens/CatalogScreen';
+import ManualInputScreen from './src/screens/ManualInputScreen';
+import ParameterScreen from './src/screens/ParameterScreen';
 import ResultScreen from './src/screens/ResultScreen';
 
 const Stack = createNativeStackNavigator();
@@ -20,30 +23,14 @@ function AppNavigator() {
           headerStyle: { backgroundColor: theme.headerBg },
           headerTintColor: theme.text,
           headerTitleStyle: { fontWeight: '700' },
+          headerShown: false,
         }}
       >
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: 'QuickG76',
-            headerRight: () => (
-              <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
-                <Text style={{ fontSize: 18 }}>{isDark ? '☀️' : '🌙'}</Text>
-              </TouchableOpacity>
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="Catalog"
-          component={CatalogScreen}
-          options={{ title: 'Katalog Ulir' }}
-        />
-        <Stack.Screen
-          name="Result"
-          component={ResultScreen}
-          options={{ title: 'Hasil G-Code' }}
-        />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Catalog" component={CatalogScreen} />
+        <Stack.Screen name="ManualInput" component={ManualInputScreen} />
+        <Stack.Screen name="Parameter" component={ParameterScreen} />
+        <Stack.Screen name="Result" component={ResultScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -52,11 +39,9 @@ function AppNavigator() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppNavigator />
+      <AppProvider>
+        <AppNavigator />
+      </AppProvider>
     </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  themeBtn: { paddingHorizontal: 8, paddingVertical: 4 },
-});
