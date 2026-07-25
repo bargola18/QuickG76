@@ -6,10 +6,13 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "description": "Kalkulator G-Code G76 untuk CNC Threading",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.quickg76.app"
     },
     "android": {
+      "package": "com.quickg76.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -18,7 +21,17 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "QuickG76",
+      "shortName": "QuickG76",
+      "description": "Kalkulator G-Code G76 untuk CNC Threading",
+      "themeColor": "#0969DA",
+      "backgroundColor": "#F0F2F5",
+      "scope": "/",
+      "startUrl": "/",
+      "display": "standalone",
+      "orientation": "portrait",
+      "barStyle": "default"
     },
     "plugins": [
       "expo-sharing"

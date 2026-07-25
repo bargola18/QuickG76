@@ -1,42 +1,49 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { useApp } from '../context/AppContext';
-import HelpPanel from '../components/HelpPanel';
+import { formatGCodeNumber } from '../utils/formatNumber';
 
-export default function ResultScreen({ navigation }) {
+export default function ResultScreen({ navigation, route }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
-  const { machineMode, odOrId, lastResult } = useApp();
-  const [help, setHelp] = useState(null);
+  const { result, machineMode, odOrId, spindleRPM } = route.params || {};
 
-  if (!lastResult) {
+  if (!result) {
     return (
       <View style={s.container}>
         <TouchableOpacity style={s.homeBtn} onPress={() => navigation.navigate('Home')}>
-          <Text style={s.homeBtnText}>← Ke Launcher</Text>
+          <Text style={s.homeBtnText}>← Home</Text>
         </TouchableOpacity>
         <View style={s.emptyBox}>
-          <Text style={{ fontSize: 40, marginBottom: 8 }}>💻</Text>
-          <Text style={{ color: theme.textSecondary, textAlign: 'center' }}>Belum ada hasil. Hitung G-Code dulu dari halaman Parameter.</Text>
+          <Text style={s.emptyText}>Belum ada hasil.</Text>
         </View>
       </View>
     );
   }
 
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    if (m === 0) return `${s} detik`;
+    if (s === 0) return `${m} menit`;
+    return `${m} menit ${s} detik`;
+  };
+
   const fullGCode = [
     `O0001`,
-    `(PROGRAM NAME - ${lastResult.parameters.designation})`,
-    `G28 U0.`,
+    `(NAMA PROGRAM - ${result.parameters.designation} ${odOrId})`,
+    `(ESTIMASI WAKTU - ${formatTime(result.cycleTimeSec)})`,
+    `G28 U0. W0.`,
     `G0 T0101`,
-    `G97 S500 M03`,
-    `G99`,
+    `G97 S${spindleRPM || 500} M03`,
+    `G21 G40 G80 G99 G18`,
+    `G54`,
     `G0 Z15.`,
-    `G0 X${lastResult.xStart}.`,
+    `G0 X${formatGCodeNumber(result.xStart)}`,
     `G0 Z2.`,
     `M8`,
-    lastResult.gcodeLine1,
-    lastResult.gcodeLine2,
+    result.gcodeLine1,
+    result.gcodeLine2,
     `G0 Z15. M9`,
     `Z25. M5`,
     `G28 U0. W0.`,
@@ -46,7 +53,7 @@ export default function ResultScreen({ navigation }) {
 
   const handleExport = async (ext) => {
     try {
-      const fileName = `QuickG76_${lastResult.parameters.designation.replace(/[/\s]/g, '_')}.${ext}`;
+      const fileName = `${result.parameters.designation.replace(/[/\s]/g, '_')}.${ext}`;
       if (Platform.OS === 'web') {
         const blob = new Blob([fullGCode], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -67,78 +74,90 @@ export default function ResultScreen({ navigation }) {
     if (Platform.OS === 'web') navigator.clipboard.writeText(fullGCode);
   };
 
+  const handleShare = async (app) => {
+    const text = fullGCode;
+    if (Platform.OS === 'web' && navigator.share) {
+      await navigator.share({ title: `QuickG76 - ${result.parameters.designation}`, text });
+    }
+  };
+
+  const handlePDF = () => {
+    if (Platform.OS === 'web') window.print();
+  };
+
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <TouchableOpacity style={s.homeBtn} onPress={() => navigation.navigate('Home')}>
-        <Text style={s.homeBtnText}>← Ke Launcher</Text>
+        <Text style={s.homeBtnText}>← Home</Text>
       </TouchableOpacity>
 
       <Text style={s.pageTitle}>Hasil G-Code</Text>
-      <Text style={s.pageSub}>{lastResult.parameters.designation}</Text>
-
-      <HelpPanel activeHelp={help} onClear={() => setHelp(null)} />
+      <Text style={s.pageSub}>{result.parameters.designation}</Text>
 
       <View style={s.card}>
-        <View style={s.labelRow}>
-          <Text style={s.label}>INFORMASI ULIR</Text>
-          <TouchableOpacity onPress={() => setHelp(help === 'export' ? null : 'export')}><Text style={{ fontSize: 16 }}>❓</Text></TouchableOpacity>
-        </View>
-        <View style={{ gap: 4 }}>
-          {[
-            ['Designasi', lastResult.parameters.designation],
-            ['Major Ø', `${lastResult.parameters.majorDiameter} mm`],
-            ['Minor Ø', `${lastResult.parameters.minorDiameter} mm`],
-            ['Thread Height', `${lastResult.parameters.threadHeight} mm`],
-            ['Pitch', `${lastResult.parameters.pitch} mm`],
-            ['Z Length', `${lastResult.parameters.zLength} mm`],
-            ['X Start', `${lastResult.xStart} mm`],
-            ['Mode', machineMode],
-            ['Tipe', odOrId === 'OD' ? 'OD (Luar)' : 'ID (Dalam)'],
-          ].map(([l, v]) => (
-            <View key={l} style={s.infoRow}>
-              <Text style={s.infoLabel}>{l}</Text>
-              <Text style={s.infoValue}>{v}</Text>
-            </View>
-          ))}
-        </View>
+        <Text style={s.label}>INFORMASI ULIR</Text>
+        {[
+          ['Designasi', result.parameters.designation],
+          ['Major Ø', `${result.parameters.majorDiameter} mm`],
+          ['Minor Ø', `${result.parameters.minorDiameter} mm`],
+          ['Thread Height', `${result.parameters.threadHeight} mm`],
+          ['Pitch', `${result.parameters.pitch} mm`],
+          ['Z Length', `${result.parameters.zLength} mm`],
+          ['X Start', `${result.xStart} mm`],
+          ['RPM', `${spindleRPM || 500} Putaran per menit`],
+          ['Estimasi Waktu', `${formatTime(result.cycleTimeSec)} (${result.numPasses} pass)`],
+          ['Mode', machineMode],
+          ['Tipe', odOrId === 'OD' ? 'OD (Luar)' : 'ID (Dalam)'],
+        ].map(([l, v]) => (
+          <View key={l} style={s.infoRow}>
+            <Text style={s.infoLabel}>{l}</Text>
+            <Text style={s.infoValue}>{v}</Text>
+          </View>
+        ))}
       </View>
 
       <View style={s.card}>
         <Text style={s.label}>G-CODE OUTPUT</Text>
         <View style={s.gcodeBox}>
-          <Text style={s.gcodeLine1}>{lastResult.gcodeLine1}</Text>
-          <Text style={s.gcodeLine1}>{lastResult.gcodeLine2}</Text>
+          <Text style={s.gcodeLine}>{result.gcodeLine1}</Text>
+          <Text style={s.gcodeLine}>{result.gcodeLine2}</Text>
         </View>
       </View>
 
       <View style={s.card}>
-        <Text style={s.label}>FULL PROGRAM (TEMPLATE PRD)</Text>
+        <Text style={s.label}>FULL PROGRAM</Text>
         <View style={s.fullCodeBox}>
           <Text style={s.fullCodeText}>{fullGCode}</Text>
         </View>
         <TouchableOpacity style={s.copyBtn} onPress={handleCopy}>
-          <Text style={s.copyBtnText}>📋 COPY G-CODE</Text>
+          <Text style={s.copyBtnText}>📋 COPY</Text>
         </TouchableOpacity>
       </View>
 
       <View style={s.card}>
         <Text style={s.label}>EXPORT</Text>
         <View style={s.exportRow}>
-          {[
-            { label: '.NC', color: theme.green },
-            { label: '.CNC', color: theme.accent },
-            { label: '.TXT', color: '#9E6A03' },
-          ].map(({ label, color }) => (
-            <TouchableOpacity key={label} style={[s.exportBtn, { backgroundColor: color }]} onPress={() => handleExport(label)}>
-              <Text style={s.exportBtnText}>{label}</Text>
+          {['NC', 'CNC', 'TXT'].map(ext => (
+            <TouchableOpacity key={ext} style={[s.exportBtn, { backgroundColor: theme.green }]} onPress={() => handleExport(ext)}>
+              <Text style={s.exportBtnText}>.{ext}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity style={[s.exportBtn, { backgroundColor: theme.red }]} onPress={handlePDF}>
+            <Text style={s.exportBtnText}>.PDF</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={s.card}>
+        <Text style={s.label}>SHARE</Text>
+        <View style={s.exportRow}>
+          {['WhatsApp', 'Telegram', 'Drive'].map(app => (
+            <TouchableOpacity key={app} style={[s.exportBtn, { backgroundColor: theme.accent }]} onPress={() => handleShare(app)}>
+              <Text style={s.exportBtnText}>{app}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
-
-      <TouchableOpacity style={s.homeBigBtn} onPress={() => navigation.navigate('Home')}>
-        <Text style={s.homeBigBtnText}>🏠 KEMBALI KE LAUNCHER</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -151,21 +170,19 @@ const makeStyles = (t) => StyleSheet.create({
   pageTitle: { fontSize: 22, fontWeight: '800', color: t.text, marginTop: 4 },
   pageSub: { fontSize: 14, color: t.accent, marginBottom: 16, marginTop: 2 },
   emptyBox: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: t.border },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  emptyText: { color: t.textSecondary },
+  card: { backgroundColor: t.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: t.border },
   label: { fontSize: 11, fontWeight: '700', color: t.textSecondary, letterSpacing: 1, marginBottom: 10 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
   infoLabel: { fontSize: 13, color: t.textSecondary },
   infoValue: { fontSize: 13, fontWeight: '600', color: t.text },
   gcodeBox: { backgroundColor: t.bg, borderRadius: 8, padding: 14 },
-  gcodeLine1: { color: t.greenText, fontFamily: Platform.OS === 'web' ? 'Consolas, monospace' : 'monospace', fontSize: 14, lineHeight: 24 },
+  gcodeLine: { color: t.greenText, fontFamily: Platform.OS === 'web' ? 'Consolas, monospace' : 'monospace', fontSize: 14, lineHeight: 24 },
   fullCodeBox: { backgroundColor: t.bg, borderRadius: 8, padding: 14, marginBottom: 10 },
   fullCodeText: { color: t.greenText, fontFamily: Platform.OS === 'web' ? 'Consolas, monospace' : 'monospace', fontSize: 11, lineHeight: 18 },
-  copyBtn: { backgroundColor: t.bg, padding: 12, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+  copyBtn: { backgroundColor: t.bg, padding: 12, borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: t.border },
   copyBtnText: { color: t.accent, fontWeight: '700', fontSize: 13 },
   exportRow: { flexDirection: 'row', gap: 12 },
-  exportBtn: { flex: 1, padding: 16, borderRadius: 8, alignItems: 'center' },
+  exportBtn: { flex: 1, padding: 16, borderRadius: 20, alignItems: 'center' },
   exportBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  homeBigBtn: { backgroundColor: t.card, padding: 16, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: t.accent, marginTop: 8 },
-  homeBigBtnText: { color: t.accent, fontWeight: '700', fontSize: 15 },
 });

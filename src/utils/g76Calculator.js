@@ -2,12 +2,12 @@ import { formatGCodeNumber } from './formatNumber';
 
 export function formatQNumber(value, machineMode) {
   if (machineMode === 'INTEGER') {
-    return Math.round(value * 1000).toString();
+    return Math.round(value).toString();
   }
   return parseFloat(value.toFixed(4)).toString();
 }
 
-export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirstPass, odOrId = 'OD' }) {
+export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirstPass, odOrId = 'OD', spindleRPM = 500 }) {
   const pitch = thread.pitchMM || thread.pitch || 0;
   const majorDiameter = thread.majorDiameterMM || thread.majorDiameter || 0;
   const isTapered = thread.taper === true;
@@ -27,15 +27,16 @@ export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirs
 
   let minorDiameter;
   let xEnd;
+  let xStart;
   if (odOrId === 'OD') {
     minorDiameter = majorDiameter - 2 * threadHeight;
     xEnd = minorDiameter;
+    xStart = majorDiameter + 2;
   } else {
-    minorDiameter = majorDiameter;
+    minorDiameter = majorDiameter - 2 * threadHeight;
     xEnd = majorDiameter;
+    xStart = minorDiameter - 1;
   }
-
-  const xStart = odOrId === 'OD' ? majorDiameter + 2 : majorDiameter - 1;
   const zEnd = -Math.abs(zLength);
 
   const rawQ1 = Math.min(docFirstPass, threadHeight * 0.5);
@@ -50,14 +51,25 @@ export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirs
 
   let taperR;
   if (isTapered) {
-    taperR = (zLength * 0.0625) / 2;
-    taperR = Math.round(taperR * 10000) / 10000;
+    if (thread.taperR != null) {
+      taperR = thread.taperR;
+    } else {
+      taperR = (zLength * 0.0625) / 2;
+      taperR = Math.round(taperR * 10000) / 10000;
+    }
+    if (thread.taperR == null && odOrId === 'OD') taperR = -taperR;
   } else {
     taperR = 0;
   }
 
   const threadHeightMicrons = Math.round(threadHeight * 1000);
   const docWarning = docFirstPass > 0.8;
+
+  const numPasses = Math.ceil(Math.pow(threadHeight / Math.min(docFirstPass, threadHeight * 0.5), 2)) + 2;
+  const rpm = spindleRPM;
+  const feedPerMin = pitch * rpm;
+  const timePerPassSec = zLength > 0 && feedPerMin > 0 ? (zLength / feedPerMin) * 60 : 0;
+  const cycleTimeSec = Math.round(numPasses * timePerPassSec + 2);
 
   const q1Str = formatQNumber(qLine1, machineMode);
   const q2Str = formatQNumber(qLine2, machineMode);
@@ -75,6 +87,8 @@ export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirs
     qLine1,
     qLine2,
     docWarning,
+    cycleTimeSec,
+    numPasses,
     parameters: {
       designation: thread.designation,
       majorDiameter: Math.round(majorDiameter * 1000) / 1000,

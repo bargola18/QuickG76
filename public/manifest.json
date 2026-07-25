@@ -1,0 +1,16 @@
+{
+  "name": "QuickG76",
+  "short_name": "QuickG76",
+  "description": "Kalkulator G-Code G76 untuk CNC Threading",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0969DA",
+  "background_color": "#F0F2F5",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}
