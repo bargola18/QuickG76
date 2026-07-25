@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "G76-Calculator",
-    "slug": "G76-Calculator",
+    "name": "QuickG76",
+    "slug": "QuickG76",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

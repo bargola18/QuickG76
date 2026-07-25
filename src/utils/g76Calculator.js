@@ -16,6 +16,8 @@ export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirs
   let threadHeight;
   if (isSpecialProfile) {
     threadHeight = 0.5 * pitch;
+  } else if (thread.constant != null) {
+    threadHeight = pitch * thread.constant;
   } else if (odOrId === 'ID') {
     threadHeight = pitch * 0.5413;
   } else {
@@ -23,11 +25,10 @@ export function calculateG76({ thread, machineMode = 'ABSOLUT', zLength, docFirs
   }
   threadHeight = Math.round(threadHeight * 10000) / 10000;
 
-  const dataMinorDiameter = thread.minorDiameterMM || thread.minorDiameter;
   let minorDiameter;
   let xEnd;
   if (odOrId === 'OD') {
-    minorDiameter = dataMinorDiameter != null ? dataMinorDiameter : (majorDiameter - 2 * threadHeight);
+    minorDiameter = majorDiameter - 2 * threadHeight;
     xEnd = minorDiameter;
   } else {
     minorDiameter = majorDiameter;
