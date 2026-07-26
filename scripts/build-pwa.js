@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const distDir = path.join(__dirname, '..', 'dist');
+const distDir = path.join(__dirname, '..', 'docs');
 const publicDir = path.join(__dirname, '..', 'public');
 
 // Copy PWA files to dist
@@ -127,13 +127,20 @@ html = html.replace(/\n\s*<meta name="apple-mobile-web-app-title".*?\n/g, '\n');
 html = html.replace(/\n\s*<link rel="apple-touch-icon".*?\n/g, '\n');
 html = html.replace(/\n\s*<script>[\s\S]*?<\/script>\n/g, '\n');
 
-const headEnd = '</head>';
-html = html.replace(headEnd, `  ${meta}\n  ${headEnd}`);
+const bodyStart = '<body>';
+html = html.replace(bodyStart, `  ${meta}\n  ${bodyStart}`);
 
 const bodyEnd = '</body>';
 html = html.replace(bodyEnd, `${swScript}\n${bodyEnd}`);
 
 fs.writeFileSync(htmlPath, html);
 console.log('  HTML: meta tags and SW script injected');
+
+// Ensure .nojekyll exists (for GitHub Pages compatibility)
+const nojekyllPath = path.join(distDir, '.nojekyll');
+if (!fs.existsSync(nojekyllPath)) {
+  fs.writeFileSync(nojekyllPath, '');
+  console.log('  PWA: created .nojekyll');
+}
 
 console.log('PWA build complete!');

@@ -23,11 +23,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "node scripts/generate-icons.js && npx expo export --platform web && node scripts/build-pwa.js",
+    "build": "node scripts/generate-icons.js && npx expo export --platform web --output-dir docs && node scripts/build-pwa.js",
     "serve": "npx http-server dist --port 8080 --cors -c-1"
   },
   "private": true,
   "devDependencies": {
+    "@expo/cli": "^57.0.10",
     "sharp": "^0.35.3"
   }
 }
