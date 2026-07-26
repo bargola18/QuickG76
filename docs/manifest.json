@@ -5,6 +5,7 @@
   "start_url": "/QuickG76/",
   "scope": "/QuickG76/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "theme_color": "#0969DA",
   "background_color": "#F0F2F5",
