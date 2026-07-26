@@ -1,5 +1,6 @@
+const BASE = '/QuickG76';
 const CACHE = 'quickg76-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json', '/favicon.ico'];
+const ASSETS = [BASE + '/', BASE + '/index.html', BASE + '/manifest.json', BASE + '/favicon.ico'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

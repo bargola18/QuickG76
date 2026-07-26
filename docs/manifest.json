@@ -2,8 +2,8 @@
   "name": "QuickG76 - Kalkulator G-Code CNC Threading",
   "short_name": "QuickG76",
   "description": "Kalkulator G-Code G76 untuk CNC Threading. Hitung parameter threading, lihat katalog ulir, ekspor file NC.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/QuickG76/",
+  "scope": "/QuickG76/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#0969DA",
@@ -12,10 +12,10 @@
   "categories": ["utilities", "productivity"],
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/QuickG76/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/QuickG76/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/QuickG76/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/QuickG76/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [],
   "edge_side_panel": {}
