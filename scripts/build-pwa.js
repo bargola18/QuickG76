@@ -147,6 +147,7 @@ let html = fs.readFileSync(htmlPath, 'utf-8');
 const meta = `
 <meta name="theme-color" content="#0969DA">
 <meta name="description" content="Kalkulator G-Code G76 untuk CNC Threading">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="${BASE_PATH}/favicon.ico"/>
     <link rel="manifest" href="${BASE_PATH}/manifest.json" />
     <meta name="theme-color" content="#0969DA" />
@@ -165,6 +166,7 @@ const swScript = `
 // Remove existing injected tags if any, then add new ones
 html = html.replace(/\n\s*<meta name="theme-color".*?\n/g, '\n');
 html = html.replace(/\n\s*<meta name="description".*?\n/g, '\n');
+html = html.replace(/\n\s*<meta name="mobile-web-app-capable".*?\n/g, '\n');
 html = html.replace(/\n\s*<link rel="icon".*?\n/g, '\n');
 html = html.replace(/\n\s*<link rel="manifest".*?\n/g, '\n');
 html = html.replace(/\n\s*<meta name="apple-mobile-web-app-capable".*?\n/g, '\n');
@@ -173,7 +175,7 @@ html = html.replace(/\n\s*<link rel="apple-touch-icon".*?\n/g, '\n');
 html = html.replace(/\n\s*<script>[\s\S]*?<\/script>\n/g, '\n');
 
 const bodyStart = '<body>';
-html = html.replace(bodyStart, `  ${meta}\n  ${bodyStart}`);
+html = html.replace(bodyStart, `  ${meta}\n  </head>\n  ${bodyStart}`);
 
 const bodyEnd = '</body>';
 html = html.replace(bodyEnd, `${swScript}\n${bodyEnd}`);
